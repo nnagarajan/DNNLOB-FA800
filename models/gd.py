@@ -65,7 +65,7 @@ class GradientDescent():
             dt = datetime.now() - t0
             print(f'Epoch {it + 1}/{epochs}, Train Loss: {train_loss:.4f}, \
               Validation Loss: {test_loss:.4f}, Duration: {dt}, Best Val Epoch: {best_test_epoch}')
-            log(f'Epoch {it + 1}/{epochs}, Train Loss: {train_loss:.4f}, \
+            log.info(f'Epoch {it + 1}/{epochs}, Train Loss: {train_loss:.4f}, \
               Validation Loss: {test_loss:.4f}, Duration: {dt}, Best Val Epoch: {best_test_epoch}')
 
         return train_losses, test_losses
