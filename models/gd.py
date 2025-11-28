@@ -1,4 +1,4 @@
-import logging
+import logging as log
 from datetime import datetime
 
 import numpy as np
@@ -12,7 +12,6 @@ class GradientDescent():
 
     # A function to encapsulate the training loop
     def batch(self, model, criterion, optimizer, train_loader, test_loader, model_savepoint, epochs):
-
         train_losses = np.zeros(epochs)
         test_losses = np.zeros(epochs)
         best_test_loss = np.inf
@@ -61,10 +60,12 @@ class GradientDescent():
                 best_test_loss = test_loss
                 best_test_epoch = it
                 print('model saved')
-                logging.info(f"model saved {model_savepoint}")
+                log.info(f"model saved {model_savepoint}")
 
             dt = datetime.now() - t0
             print(f'Epoch {it + 1}/{epochs}, Train Loss: {train_loss:.4f}, \
+              Validation Loss: {test_loss:.4f}, Duration: {dt}, Best Val Epoch: {best_test_epoch}')
+            log(f'Epoch {it + 1}/{epochs}, Train Loss: {train_loss:.4f}, \
               Validation Loss: {test_loss:.4f}, Duration: {dt}, Best Val Epoch: {best_test_epoch}')
 
         return train_losses, test_losses
