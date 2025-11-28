@@ -17,8 +17,8 @@ class MLP(nn.Module):
         # [batch_size x 40 x observation_length]
         x = x.view(x.size(0), -1).float()
         out = self.linear1(x)
-        out = self.leakyReLU(out)
-        out = self.dropout(out)
+        # out = self.leakyReLU(out)
+        # out = self.dropout(out)
         out = self.linear2(out)
         out = F.softmax(out, dim=1)
         return out

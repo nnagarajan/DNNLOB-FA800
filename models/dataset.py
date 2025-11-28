@@ -57,3 +57,32 @@ class Dataset(data.Dataset):
         y = torch.from_numpy(y)
         y = F.one_hot(y, num_classes=3)
         return x, y
+
+    def merge(self, other):
+        """
+        Merge this Dataset with another Dataset of the same structure.
+        Returns a NEW merged Dataset.
+        """
+        # Basic shape + structural checks
+        assert self.T == other.T, "T mismatch"
+        assert self.num_classes == other.num_classes, "num_classes mismatch"
+        assert self.x.shape[2:] == other.x.shape[2:], "Feature dimension mismatch"
+
+        # Concatenate samples
+        new_x = torch.cat([self.x, other.x], dim=0)
+        new_y = torch.cat([self.y, other.y], dim=0)
+
+        # Create an empty placeholder instance
+        merged = object.__new__(Dataset)
+
+        # Copy attributes
+        merged.k = self.k
+        merged.num_classes = self.num_classes
+        merged.T = self.T
+        merged.length = new_x.shape[0]
+
+        # Assign concatenated tensors
+        merged.x = new_x
+        merged.y = new_y
+
+        return merged
