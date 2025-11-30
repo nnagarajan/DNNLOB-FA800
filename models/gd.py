@@ -44,12 +44,13 @@ class GradientDescent():
 
             model.eval()
             test_loss = []
-            for inputs, targets in test_loader:
-                inputs, targets = inputs.to(self.device, dtype=torch.float), targets.to(self.device, dtype=torch.int64)
-                outputs = model(inputs)
-                loss = criterion(outputs, targets)
-                test_loss.append(loss.item())
-            test_loss = np.mean(test_loss)
+            with torch.no_grad():
+                for inputs, targets in test_loader:
+                    inputs, targets = inputs.to(self.device, dtype=torch.float), targets.to(self.device, dtype=torch.int64)
+                    outputs = model(inputs)
+                    loss = criterion(outputs, targets)
+                    test_loss.append(loss.item())
+                test_loss = np.mean(test_loss)
 
             # Save losses
             train_losses[it] = train_loss
@@ -76,19 +77,20 @@ class GradientDescent():
         model.eval()
         all_targets = []
         all_predictions = []
-        for inputs, targets in test_loader:
-            # Move to GPU
-            inputs, targets = inputs.to(self.device, dtype=torch.float), targets.to(self.device, dtype=torch.int64)
+        with torch.no_grad():
+            for inputs, targets in test_loader:
+                # Move to GPU
+                inputs, targets = inputs.to(self.device, dtype=torch.float), targets.to(self.device, dtype=torch.int64)
 
-            # Forward pass
-            outputs = model(inputs)
+                # Forward pass
+                outputs = model(inputs)
 
-            # Get prediction
-            # torch.max returns both max and argmax
-            _, predictions = torch.max(outputs, 1)
+                # Get prediction
+                # torch.max returns both max and argmax
+                _, predictions = torch.max(outputs, 1)
 
-            all_targets.append(targets.cpu().numpy())
-            all_predictions.append(predictions.cpu().numpy())
+                all_targets.append(targets.cpu().numpy())
+                all_predictions.append(predictions.cpu().numpy())
         all_targets = np.concatenate(all_targets)
         all_predictions = np.concatenate(all_predictions)
         return all_targets, all_predictions
