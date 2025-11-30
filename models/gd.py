@@ -71,7 +71,7 @@ class GradientDescent():
         return train_losses, test_losses
 
     def evaulate_model(self, model_savepoint, model, test_loader):
-        state = torch.load(f'.{model_savepoint}')
+        state = torch.load(f'.{model_savepoint}', weights_only=True)
         model.load_state_dict(state)
         model.eval()
         all_targets = []
