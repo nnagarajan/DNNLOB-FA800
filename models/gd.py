@@ -11,11 +11,13 @@ class GradientDescent():
         self.device = device
 
     # A function to encapsulate the training loop
-    def batch(self, model, criterion, optimizer, train_loader, test_loader, model_savepoint, epochs):
+    def batch(self, model, criterion, optimizer, train_loader, test_loader, model_savepoint, epochs,patience=20):
         train_losses = np.zeros(epochs)
         test_losses = np.zeros(epochs)
         best_test_loss = np.inf
         best_test_epoch = 0
+        # counter for epochs without improvement
+        no_improve_epochs = 0
 
         for it in tqdm(range(epochs)):
 
@@ -62,12 +64,27 @@ class GradientDescent():
                 best_test_epoch = it
                 print('model saved')
                 log.info(f"model saved {model_savepoint}")
+                no_improve_epochs = 0  # reset counter
+            else:
+                no_improve_epochs += 1
 
             dt = datetime.now() - t0
             print(f'Epoch {it + 1}/{epochs}, Train Loss: {train_loss:.4f}, \
               Validation Loss: {test_loss:.4f}, Duration: {dt}, Best Val Epoch: {best_test_epoch}')
             log.info(f'Epoch {it + 1}/{epochs}, Train Loss: {train_loss:.4f}, \
               Validation Loss: {test_loss:.4f}, Duration: {dt}, Best Val Epoch: {best_test_epoch}')
+
+
+            # Early stopping check
+            if patience is not None and no_improve_epochs >= patience:
+                print(f"Early stopping triggered at epoch {it + 1} "
+                      f"(no improvement in val loss for {patience} epochs).")
+                log.info(f"Early stopping at epoch {it + 1}, "
+                         f"best val epoch: {best_test_epoch}, best val loss: {best_test_loss:.4f}")
+                # truncate the loss arrays to the number of completed epochs
+                train_losses = train_losses[:it + 1]
+                test_losses = test_losses[:it + 1]
+                break
 
         return train_losses, test_losses
 

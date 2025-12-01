@@ -1,6 +1,9 @@
 import numpy as np
 from sklearn.preprocessing import StandardScaler,MinMaxScaler
 import pandas as pd
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+import matplotlib.pyplot as plt
+import numpy as np
 
 def add_horizons(df,horizons,alpha):
     #rolling_mid = df["mid_price"]
@@ -206,3 +209,10 @@ def normalize_by_prev_day(
     df_norm = df_norm.drop(columns="_date")
 
     return df_norm
+
+def print_cfm(all_targets,all_predictions):
+    cm = confusion_matrix(all_targets, all_predictions)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=["Down", "Stable", "Up"]) # Replace with your actual class labels
+    disp.plot()
+    plt.title("Confusion Matrix")
+    plt.show()
