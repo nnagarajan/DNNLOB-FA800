@@ -3,7 +3,7 @@ from torch import nn
 
 
 class MLP(nn.Module):
-    def __init__(self, input_dim=(40, 100), output_dim=3, hidden_layer_dim=128, p_dropout=0.1):
+    def __init__(self, input_dim=(40, 100), output_dim=3, hidden_layer_dim=10, p_dropout=0.1):
         super().__init__()
         self.input_dim = input_dim
         self.output_dim = output_dim
@@ -19,7 +19,7 @@ class MLP(nn.Module):
         out = self.linear1(x)
         #out = self.leakyReLU(out)
         #out = self.dropout(out)
-        out = self.linear2(out)
+        #out = self.linear2(out)
         out = F.softmax(out, dim=1)
         return out
 

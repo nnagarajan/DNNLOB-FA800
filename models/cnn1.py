@@ -1,3 +1,4 @@
+import torch.nn.functional as F
 from torch import nn
 
 
@@ -76,5 +77,6 @@ class CNN1(nn.Module):
         # Linear function (readout)
         out = self.fc2(out)
         # print('After linear2:', out.shape)
+        out = F.softmax(out, dim=1)
 
         return out
