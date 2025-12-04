@@ -14,9 +14,9 @@ def add_horizons(df,horizons,alpha):
         rolling_mid_plus = df["mid_price"].rolling(window=h, min_periods=h).mean().to_numpy().flatten()
         delta_ticks = rolling_mid_plus - rolling_mid_minus
         df[f"Raw_Target_{str(h)}"] = delta_ticks
-    df["Target_10"] = np.where(df["Raw_Target_10"] >= alpha, 2, np.where(df["Raw_Target_10"] <= -alpha, 1, 0))
-    df["Target_50"] = np.where(df["Raw_Target_50"] >= alpha, 2, np.where(df["Raw_Target_50"] <= -alpha, 1, 0))
-    df["Target_100"] = np.where(df["Raw_Target_100"] >= alpha, 2, np.where(df["Raw_Target_100"] <= -alpha, 1, 0))
+        df[f"Target_{str(h)}"] = np.where(df[f"Raw_Target_{str(h)}"] >= alpha, 2, np.where(df[f"Raw_Target_{str(h)}"] <= -alpha, 1, 0))
+    #df["Target_50"] = np.where(df["Raw_Target_50"] >= alpha, 2, np.where(df["Raw_Target_50"] <= -alpha, 1, 0))
+    #df["Target_100"] = np.where(df["Raw_Target_100"] >= alpha, 2, np.where(df["Raw_Target_100"] <= -alpha, 1, 0))
     return  df[~df.isna().any(axis=1)]
 
 def normalize(df):
@@ -212,7 +212,9 @@ def normalize_by_prev_day(
 
 def print_cfm(all_targets,all_predictions):
     cm = confusion_matrix(all_targets, all_predictions)
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=["Down", "Stable", "Up"]) # Replace with your actual class labels
+    order = [1, 0, 2]
+    cm_reordered = cm[order, :][:, order]
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm_reordered, display_labels=["Down", "Stable", "Up"]) # Replace with your actual class labels
     disp.plot()
     plt.title("Confusion Matrix")
     plt.show()
