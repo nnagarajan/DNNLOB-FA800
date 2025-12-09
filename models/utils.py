@@ -214,7 +214,94 @@ def print_cfm(all_targets,all_predictions):
     cm = confusion_matrix(all_targets, all_predictions)
     order = [1, 0, 2]
     cm_reordered = cm[order, :][:, order]
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm_reordered, display_labels=["Down", "Stable", "Up"]) # Replace with your actual class labels
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm_reordered, display_labels=["Down", "Stable", "Up"])
     disp.plot()
     plt.title("Confusion Matrix")
     plt.show()
+
+def compute_pnl(df, k_delay=5, slippage=0, q=100):
+    df = df.copy().reset_index(drop=True)
+    n = len(df)
+
+    mid = df["mid_price"].to_numpy()
+    sig = df["prediction"].to_numpy().astype(int)
+    is_eod = df["isEOD"].to_numpy().astype(bool)
+
+    position = 0
+    entry_price = None
+    entry_idx = None
+
+    pending_buy_exec_idx = None
+    pending_sell_exec_idx = None
+
+    trades = []
+    exec_buy = np.zeros(n, dtype=bool)
+    exec_sell = np.zeros(n, dtype=bool)
+    pos_series = np.zeros(n, dtype=int)
+
+    for i in range(n):
+
+
+        if sig[i] == 2 and position == 0 and pending_buy_exec_idx is None:
+            exec_idx = i + k_delay
+            if exec_idx < n and not is_eod[exec_idx]:
+                pending_buy_exec_idx = exec_idx
+
+        if sig[i] == 1 and position == 1 and pending_sell_exec_idx is None:
+            exec_idx = i + k_delay
+            if exec_idx < n and not is_eod[exec_idx]:
+                pending_sell_exec_idx = exec_idx
+
+        if is_eod[i]:
+            if position == 1 and entry_price is not None:
+                sell_mid = mid[i]
+                sell_price = sell_mid * (1 - slippage)
+
+                pnl = q * (sell_price - entry_price)
+
+                trades.append((entry_idx, i, entry_price, sell_price, pnl))
+                position = 0
+                entry_price = None
+                entry_idx = None
+
+            pending_buy_exec_idx = None
+            pending_sell_exec_idx = None
+
+        if pending_buy_exec_idx is not None and i == pending_buy_exec_idx:
+            if position == 0:
+                buy_mid = mid[i]
+                buy_price = buy_mid * (1 + slippage)
+                position = 1
+                entry_price = buy_price
+                entry_idx = i
+                exec_buy[i] = True
+            pending_buy_exec_idx = None
+
+        if pending_sell_exec_idx is not None and i == pending_sell_exec_idx:
+            if position == 1 and entry_price is not None:
+                sell_mid = mid[i]
+                sell_price = sell_mid * (1 - slippage)
+
+                pnl = q * (sell_price - entry_price)
+
+                trades.append((entry_idx, i, entry_price, sell_price, pnl))
+                position = 0
+                entry_price = None
+                entry_idx = None
+                exec_sell[i] = True
+            pending_sell_exec_idx = None
+
+        pos_series[i] = position
+
+    trades_df = pd.DataFrame(
+        trades,
+        columns=["entry_idx", "exit_idx", "entry_price", "exit_price", "pnl"]
+    )
+
+    total_pnl = trades_df["pnl"].sum() if len(trades_df) else 0.0
+
+    df["position"] = pos_series
+    df["exec_buy"] = exec_buy
+    df["exec_sell"] = exec_sell
+
+    return total_pnl, trades_df, df
